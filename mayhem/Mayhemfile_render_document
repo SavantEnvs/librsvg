@@ -1,0 +1,19 @@
+# librsvg in-process libFuzzer target (cargo-fuzz / libfuzzer-sys) — upstream's own
+# render_document harness (the same one OSS-Fuzz builds). Feeds fuzz bytes as an SVG
+# document into rsvg::Loader::read_stream and, on success, renders it to a cairo
+# ARGB32 surface via CairoRenderer::render_document — exercising the full XML/CSS
+# parse + layout + paint + text pipeline.
+project: savantenvs/librsvg
+target: render_document
+image: savantenvs/librsvg:latest
+
+cmds:
+  - cmd: /mayhem/render_document
+    libfuzzer: true
+    # Baked-in image dict (absolute path is correct here — it READS baked-in image
+    # data, not a runner-checkout seed path).
+    dictionary: /mayhem/mayhem/render_document/render_document.dict
+
+testsuite:
+  - https://$MAYHEM_DOMAIN/$MAYHEM_PROJECT/$MAYHEM_TARGET/testsuite.tar
+  - file://mayhem/render_document/testsuite
