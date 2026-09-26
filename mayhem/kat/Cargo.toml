@@ -1,0 +1,31 @@
+# Additive known-answer-test (KAT) probe for the Mayhem integration oracle.
+#
+# A tiny DYNAMICALLY-LINKED binary that drives the UNMODIFIED librsvg (rsvg) crate at
+# the repo root through the SAME load+render pipeline the fuzz target uses, and prints
+# exact computed values (intrinsic size + a rendered pixel). mayhem/test.sh runs it and
+# greps those values, so the oracle asserts BEHAVIOR, not exit codes — and because the
+# binary is dynamically linked, verify-repo's sabotage shim neuters it (_exit(0) before
+# main) and the grep then fails, proving the oracle is not reward-hackable (SPEC §6.3).
+#
+# Standalone [workspace] so this additive crate stays OUT of the upstream root
+# workspace's resolution (we never edit upstream files). It depends on the librsvg
+# crate by path; that crate's own `.workspace` inheritance resolves against ITS own
+# (upstream) workspace root, so pulling it in from here is fine.
+[package]
+name = "librsvg-mayhem-kat"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[[bin]]
+name = "kat_probe"
+path = "src/main.rs"
+
+[dependencies]
+librsvg = { path = "../../rsvg" }
+cairo-rs = "0.22"
+gio = "0.22"
+glib = "0.22"
+
+[workspace]
+members = ["."]

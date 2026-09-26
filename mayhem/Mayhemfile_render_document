@@ -1,0 +1,19 @@
+# librsvg in-process libFuzzer target (cargo-fuzz / libfuzzer-sys) — upstream's own
+# render_document harness (the same one OSS-Fuzz builds). Feeds fuzz bytes as an SVG
+# document into rsvg::Loader::read_stream and, on success, renders it to a cairo
+# ARGB32 surface via CairoRenderer::render_document — exercising the full XML/CSS
+# parse + layout + paint + text pipeline.
+#
+# BACKPORT (BACKPORT.md): reproduces the mayhemheroes render-document bug found at run 12
+# (FUZZED 32f29f241905), frozen at its vulnerable upstream commit. Not the live target.
+# origin: https://app.mayhem.security/mayhemheroes/librsvg/render-document/12
+project: savantenvs/librsvg
+target: render-document-buggy-mhh-run-12
+image: savantenvs/librsvg:latest
+
+cmds:
+  - cmd: /mayhem/render_document
+    libfuzzer: true
+    # Baked-in image dict (absolute path is correct here — it READS baked-in image
+    # data, not a runner-checkout seed path).
+    dictionary: /mayhem/mayhem/render-document-buggy-mhh-run-12/render_document.dict
